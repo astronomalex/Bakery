@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using BakeryTestSolution.Data.Dtos;
 using BakeryTestSolution.Data.Interfaces;
 using BakeryTestSolution.Data.Models;
 
@@ -11,13 +13,33 @@ namespace BakeryTestSolution.Data.Implementations
 
         public CategoryRepository()
         {
-            this.categories.Add(new Category {Id = 1, Name = "Круасан"});
-            this.categories.Add(new Category {Id = 2, Name = "Багет"});
-            this.categories.Add(new Category {Id = 3, Name = "Батон"});
-            this.categories.Add(new Category {Id = 4, Name = "Крендель"});
-            this.categories.Add(new Category {Id = 5, Name = "Сметанник"});
+            this.categories.Add(new Category
+            {
+                Id = 1, Name = "Круасан", Price = 95, ControlPeriodHours = TimeSpan.FromHours(24),
+                ExpirationDateHours = TimeSpan.FromHours(72)
+            });
+            this.categories.Add(new Category
+            {
+                Id = 2, Name = "Багет", Price = 100, ControlPeriodHours = TimeSpan.FromHours(24),
+                ExpirationDateHours = TimeSpan.FromHours(72)
+            });
+            this.categories.Add(new Category
+            {
+                Id = 3, Name = "Батон", Price = 90, ControlPeriodHours = TimeSpan.FromHours(24),
+                ExpirationDateHours = TimeSpan.FromHours(72)
+            });
+            this.categories.Add(new Category
+            {
+                Id = 4, Name = "Крендель", Price = 85, ControlPeriodHours = TimeSpan.FromHours(24),
+                ExpirationDateHours = TimeSpan.FromHours(72)
+            });
+            this.categories.Add(new Category
+            {
+                Id = 5, Name = "Сметанник", Price = 57, ControlPeriodHours = TimeSpan.FromHours(24),
+                ExpirationDateHours = TimeSpan.FromHours(72)
+            });
         }
-        
+
         public IEnumerable<Category> GetAll()
         {
             return categories;
@@ -29,11 +51,17 @@ namespace BakeryTestSolution.Data.Implementations
             return category;
         }
 
-        public int Add(string categoryName)
+        public int Add(CreateCategoryDto dto)
         {
             var newId = (from c in categories
                 select c.Id).Max() + 1;
-            categories.Add(new Category{Id = newId, Name = categoryName});
+            categories.Add(new Category
+            {
+                Id = newId,
+                Name = dto.Name,
+                ControlPeriodHours = TimeSpan.FromHours(dto.ControlPeriod),
+                ExpirationDateHours = TimeSpan.FromHours(dto.ExpirationDateHours)
+            });
             return newId;
         }
 
@@ -44,9 +72,18 @@ namespace BakeryTestSolution.Data.Implementations
             return id;
         }
 
-        public int SetExpirationDate(int hours)
+        public Category Update(EditCategoryDto dto)
         {
-            throw new System.NotImplementedException();
+            var newCategory = categories.FirstOrDefault(c => c.Id == dto.id);
+            if (newCategory == null) throw new NullReferenceException();
+            if (dto.controlPeriodHours > dto.expirationDateHours)
+                throw new Exception("Срок годности не может быть меньше контрольного периода");
+            newCategory.ControlPeriodHours = TimeSpan.FromHours(dto.controlPeriodHours);
+            newCategory.ExpirationDateHours = TimeSpan.FromHours(dto.expirationDateHours);
+            if (dto.price <= 0)
+                throw new Exception("Цена не может быть 0 или меньше");
+            newCategory.Price = dto.price;
+            return newCategory;
         }
     }
 }

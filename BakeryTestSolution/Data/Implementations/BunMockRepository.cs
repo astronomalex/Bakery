@@ -9,50 +9,44 @@ namespace BakeryTestSolution.Data.Implementations
 {
     public class BunMockRepository : IBunRepository
     {
-        private readonly IPriceRepository _priceRepository;
+        private readonly IPriceService _priceService;
         private readonly ICategoryRepository _categoryRepository;
         private IList<Bun> buns = new List<Bun>();  
 
-        public BunMockRepository(IPriceRepository priceRepository, ICategoryRepository categoryRepository)
+        public BunMockRepository(IPriceService priceService, ICategoryRepository categoryRepository)
         {
-            _priceRepository = priceRepository;
+            _priceService = priceService;
             _categoryRepository = categoryRepository;
         }
 
         public IEnumerable<Bun> GetAll() => buns;
 
-
-        public Bun Add(CreateBunDto createBunDto)
+        public int AddList(AddBunsDto dto)
         {
-            var category = _categoryRepository.GetCategory(createBunDto.CategoryId);
-            var bun = new Bun
-            {
-                Category = category,
-                TimeManufacture = createBunDto.TimeManufacture
-            };
-            buns.Add(bun);
-            return bun;
-        }
-
-        public int AddList(int quantity, int categoryId)
-        {
-            var now = DateTime.Now;
-            var category = _categoryRepository.GetAll().FirstOrDefault(c => c.Id == categoryId);
-            for (var i = 1; i <= quantity; i++)
+            var dateTime = string.IsNullOrEmpty(dto.dateManufacture)? DateTime.Now : Convert.ToDateTime(dto.dateManufacture);
+            var category = _categoryRepository.GetAll().FirstOrDefault(c => c.Id == dto.categoryId);
+            for (var i = 1; i <= dto.quantity; i++)
                 buns.Add(
                     new Bun
                     {
-                        TimeManufacture = now,
+                        Id = getNewId(),
+                        TimeManufacture = dateTime,
                         Category = category
                     });
 
             return buns.Count;
         }
 
-        public int SetExpirationDate(int hours)
+        public bool Remove(int id)
         {
-            Croissant.ControlPeriod = TimeSpan.FromHours(hours);
-            return hours;
+            var bun = buns.FirstOrDefault(b => b.Id == id);
+            return bun is not null && buns.Remove(bun);
+        }
+
+        private int getNewId()
+        {
+            return buns.Count > 0? (from b in buns
+                select b.Id).Max() + 1: 1;
         }
     }
 }

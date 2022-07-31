@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using BakeryTestSolution.Data.Dtos;
 using BakeryTestSolution.Data.Models;
 
 namespace BakeryTestSolution.Data.Interfaces
@@ -7,8 +8,8 @@ namespace BakeryTestSolution.Data.Interfaces
     {
         IEnumerable<Category> GetAll();
         Category GetCategory(int id);
-         int Add(string categoryName);
+         int Add(CreateCategoryDto dto);
         int Remove(int id);
-        int SetExpirationDate(int hours);
+        Category Update(EditCategoryDto dto);
     }
 }

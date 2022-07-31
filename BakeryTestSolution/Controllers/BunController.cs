@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BakeryTestSolution.Data.Dtos;
@@ -11,16 +12,16 @@ using Microsoft.Extensions.Logging;
 public class BunController : ControllerBase
 {
     private readonly IBunRepository _bunRepository;
-    private readonly IPriceRepository _priceRepository;
+    private readonly IPriceService _priceService;
     private readonly ICategoryRepository _categoryRepository;
 
     public BunController(
         IBunRepository bunRepository,
-        IPriceRepository priceRepository,
+        IPriceService priceService,
         ICategoryRepository categoryRepository)
     {
         _bunRepository = bunRepository;
-        _priceRepository = priceRepository;
+        _priceService = priceService;
         _categoryRepository = categoryRepository;
     }
 
@@ -30,17 +31,18 @@ public class BunController : ControllerBase
         var all = _bunRepository.GetAll();
         var dtos = new List<BunDto>();
         if (all.Count() == 0) return dtos;
-        
+
         foreach (var bun in all)
         {
             var dto = new BunDto
             {
+                Id = bun.Id,
                 Name = bun.Category.Name,
-                Price = _priceRepository.getPrice(bun),
-                ActualPrice = _priceRepository.getActualPrice(bun),
-                NextPrice = _priceRepository.getNextPrice(bun),
+                Price = bun.Category.Price,
+                ActualPrice = _priceService.getActualPrice(bun),
+                NextPrice = _priceService.getNextPrice(bun),
                 TimeManufacture = bun.TimeManufacture,
-                TimeNextChangePrice = _priceRepository.getNextChangePrice(bun)
+                TimeNextChangePrice = _priceService.getNextChangePrice(bun)
             };
             dtos.Add(dto);
         }
@@ -49,16 +51,15 @@ public class BunController : ControllerBase
     }
 
     [HttpPost("addlist")]
-    public IActionResult AddList(int quantity, int categoryId)
+    public IActionResult AddList([FromBody] AddBunsDto dto)
     {
-        _bunRepository.AddList(quantity, categoryId);
-        return Ok(quantity);
+        _bunRepository.AddList(dto);
+        return Ok(dto.quantity);
     }
 
-    [HttpPost("add")]
-    public IActionResult Add(CreateBunDto createBunDto)
+    [HttpPost("remove")]
+    public IActionResult Remove([FromBody] int id)
     {
-        _bunRepository.Add(createBunDto);
-        return Ok(createBunDto);
+        return Ok(_bunRepository.Remove(id));
     }
 }

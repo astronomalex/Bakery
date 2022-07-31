@@ -4,40 +4,18 @@ using BakeryTestSolution.Data.Models;
 
 namespace BakeryTestSolution.Data.Implementations
 {
-    public class PriceRepository : IPriceRepository
+    public class PriceService : IPriceService
     {
-        public decimal getPrice(Bun bun)
+        private readonly ICategoryRepository _categoryRepository;
+
+        public PriceService(ICategoryRepository categoryRepository)
         {
-            switch (bun.Category.Name)
-            {
-                case "Круасан":
-                {
-                    return 150;
-                }
-                case "Багет":
-                {
-                    return 100;
-                }
-                case "Крендель":
-                {
-                    return 90;
-                }
-                case "Батон":
-                {
-                    return 120;
-                }
-                case "Сметанник":
-                {
-                    return 70;
-                }
-            }
-
-            throw new InvalidOperationException();
+            _categoryRepository = categoryRepository;
         }
-
         public decimal getActualPrice(Bun bun)
         {
             var now = DateTime.Now;
+            if ((now - bun.TimeManufacture).TotalHours > bun.Category.ExpirationDateHours.TotalHours) return 0;
             switch (bun.Category.Name)
             {
                 case "Круасан" 
@@ -45,20 +23,20 @@ namespace BakeryTestSolution.Data.Implementations
                     or "Батон":
                 {
                     var quantityHours = (now - bun.TimeManufacture).Hours;
-                    var price = getPrice(bun);
+                    var price = bun.Category.Price;
                     return price - price * 2 / 100 * quantityHours;
                 }
                 case "Крендель":
                 {
-                    var price = getPrice(bun);
-                    if (Pretzel.ControlPeriod < now - bun.TimeManufacture) return price / 2;
+                    var price = bun.Category.Price;
+                    if (bun.Category.ControlPeriodHours < now - bun.TimeManufacture) return price / 2;
 
                     return price;
                 }
                 case "Сметанник":
                 {
                     var quantityHours = (now - bun.TimeManufacture).Hours;
-                    var price = getPrice(bun);
+                    var price = bun.Category.Price;
                     return price - price * 4 / 100 * quantityHours;
                 }
             }
@@ -69,44 +47,41 @@ namespace BakeryTestSolution.Data.Implementations
         public decimal getNextPrice(Bun bun)
         {
             var now = DateTime.Now;
+            var price = bun.Category.Price;
             switch (bun.Category.Name)
             {
                 case "Круасан":
                 {
                     var quantityHours = (now - bun.TimeManufacture).Hours + 1;
-                    var price = getPrice(bun);
-                    if (quantityHours >= Croissant.ExpirationDateHours.TotalHours)
+                    
+                    if (quantityHours >= bun.Category.ExpirationDateHours.TotalHours)
                         return 0;
                     return price - price * 2 / 100 * quantityHours;
                 }
                 case "Багет":
                 {
                     var quantityHours = (now - bun.TimeManufacture).Hours + 1;
-                    var price = getPrice(bun);
-                    if (quantityHours >= Baguette.ExpirationDateHours.TotalHours)
+                    if (quantityHours >= bun.Category.ExpirationDateHours.TotalHours)
                         return 0;
                     return price - price * 2 / 100 * quantityHours;
                 }
                 case "Батон":
                 {
                     var quantityHours = (now - bun.TimeManufacture).Hours + 1;
-                    var price = getPrice(bun);
-                    if (quantityHours >= Loaf.ExpirationDateHours.TotalHours)
+                    if (quantityHours >= bun.Category.ExpirationDateHours.TotalHours)
                         return 0;
                     return price - price * 2 / 100 * quantityHours;
                 }
                 case "Крендель":
                 {
-                    var price = getPrice(bun);
-                    if (Pretzel.ControlPeriod < now - bun.TimeManufacture) return 0;
+                    if (bun.Category.ControlPeriodHours < now - bun.TimeManufacture) return 0;
 
                     return price / 2;
                 }
                 case "Сметанник":
                 {
                     var quantityHours = (now - bun.TimeManufacture).Hours + 1;
-                    var price = getPrice(bun);
-                    if (quantityHours >= SourCreamBun.ExpirationDateHours.TotalHours)
+                    if (quantityHours >= bun.Category.ExpirationDateHours.TotalHours)
                         return 0;
                     return price - price * 4 / 100 * quantityHours;
                 }
@@ -132,9 +107,9 @@ namespace BakeryTestSolution.Data.Implementations
                 }
                 case "Крендель":
                 {
-                    if (bun.TimeManufacture + Pretzel.ControlPeriod > now)
-                        return bun.TimeManufacture + Pretzel.ControlPeriod;
-                    return bun.TimeManufacture + Pretzel.ExpirationDateHours;
+                    if (bun.TimeManufacture + bun.Category.ControlPeriodHours > now)
+                        return bun.TimeManufacture + bun.Category.ControlPeriodHours;
+                    return bun.TimeManufacture + bun.Category.ExpirationDateHours;
                 }
             }
 

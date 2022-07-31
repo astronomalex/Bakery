@@ -1,39 +1,55 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using BakeryTestSolution.Data.Dtos;
 using BakeryTestSolution.Data.Interfaces;
 using BakeryTestSolution.Data.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
-[ApiController]
-[Route("[controller]")]
-public class CategoryController : ControllerBase
+namespace BakeryTestSolution.Controllers
 {
-    private readonly IBunRepository _bunRepository;
-    private readonly IPriceRepository _priceRepository;
-    private readonly ICategoryRepository _categoryRepository;
-
-    public CategoryController(IBunRepository bunRepository,
-        IPriceRepository priceRepository,
-        ICategoryRepository categoryRepository)
+    [ApiController]
+    [Route("[controller]")]
+    public class CategoryController : ControllerBase
     {
-        _bunRepository = bunRepository;
-        _priceRepository = priceRepository;
-        _categoryRepository = categoryRepository;
-    }
+        private readonly ICategoryRepository _categoryRepository;
 
-    [HttpGet]
-    public ActionResult<IEnumerable<Category>> Get()
-    {
-        var all = _categoryRepository.GetAll();
-        return Ok(all);
-    }
+        public CategoryController(ICategoryRepository categoryRepository)
+        {
+            _categoryRepository = categoryRepository;
+        }
 
-    [HttpPost("add")]
-    public IActionResult Add(string name)
-    {
-        _categoryRepository.Add(name);
-        return Ok($"added {name}");
+        [HttpGet]
+        public ActionResult<IEnumerable<EditCategoryDto>> Get()
+        {
+            var all = _categoryRepository.GetAll();
+            ICollection<EditCategoryDto> dtos = new List<EditCategoryDto>();
+            foreach (var category in all)
+            {
+                dtos.Add(new EditCategoryDto
+                {
+                    id = category.Id,
+                    name = category.Name,
+                    price = category.Price,
+                    controlPeriodHours = Convert.ToInt32(category.ControlPeriodHours.TotalHours),
+                    expirationDateHours = Convert.ToInt32(category.ExpirationDateHours.TotalHours)
+                });
+            }
+            return Ok(dtos);
+        }
+
+        [HttpPost("add")]
+        public IActionResult Add(CreateCategoryDto dto)
+        {
+            _categoryRepository.Add(dto);
+            return Ok($"added {dto.Name}");
+        }
+
+        [HttpPut("update")]
+        public IActionResult Update([FromBody]EditCategoryDto dto)
+        {
+            var newCategory = _categoryRepository.Update(dto);
+            return Ok($"Updated {newCategory}");
+        }
+
     }
 }
