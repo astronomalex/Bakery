@@ -24,6 +24,7 @@ namespace BakeryTestSolution.Data.Implementations
         public int AddList(AddBunsDto dto)
         {
             var dateTime = string.IsNullOrEmpty(dto.dateManufacture)? DateTime.Now : Convert.ToDateTime(dto.dateManufacture);
+            if (dateTime > DateTime.Now) dateTime = DateTime.Now;
             var category = _categoryRepository.GetAll().FirstOrDefault(c => c.Id == dto.categoryId);
             for (var i = 1; i <= dto.quantity; i++)
                 buns.Add(

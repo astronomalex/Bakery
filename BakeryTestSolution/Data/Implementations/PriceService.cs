@@ -22,9 +22,9 @@ namespace BakeryTestSolution.Data.Implementations
                     or "Багет" 
                     or "Батон":
                 {
-                    var quantityHours = (now - bun.TimeManufacture).Hours;
+                    var quantityHours = (now - bun.TimeManufacture).TotalHours;
                     var price = bun.Category.Price;
-                    return price - price * 2 / 100 * quantityHours;
+                    return price - (price * 2 / 100 * (decimal)quantityHours);
                 }
                 case "Крендель":
                 {
@@ -35,9 +35,9 @@ namespace BakeryTestSolution.Data.Implementations
                 }
                 case "Сметанник":
                 {
-                    var quantityHours = (now - bun.TimeManufacture).Hours;
+                    var quantityHours = (now - bun.TimeManufacture).TotalHours;
                     var price = bun.Category.Price;
-                    return price - price * 4 / 100 * quantityHours;
+                    return price - price * 4 / 100 * (decimal)quantityHours;
                 }
             }
 
