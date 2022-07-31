@@ -1,1 +1,4 @@
-﻿/BakeryTestSolution/obj/
+﻿/BakeryTestSolution/bin/
+/BakeryTestSolution/bin/**
+/BakeryTestSolution/obj/
+/BakeryTestSolution/obj/**
